@@ -11,6 +11,12 @@ class ViewController: UIViewController {
 
     let imageConfig = UIImage.SymbolConfiguration(pointSize: Metric.imagePointSize, weight: .thin , scale: .large)
 
+    private var timer = Timer()
+    private var workTime = Metric.workTime
+    private var restTime = Metric.restTime
+    private var workPeriod = true
+    private var isTamerStarted = false
+
     private lazy var timeLabel: UILabel = {
         let label = UILabel()
 
@@ -33,8 +39,6 @@ class ViewController: UIViewController {
         return button
     }()
 
-    @objc private func startButtonTap(sender: UIButton!) { }
-
     private lazy var parentStackView: UIStackView = {
         let stackView = UIStackView()
 
@@ -49,6 +53,50 @@ class ViewController: UIViewController {
         setupHieracly()
         setupLayout()
         setupView()
+    }
+
+    //MARK: isWorkTime
+
+    private func startTimer() {
+        timer = Timer.scheduledTimer(timeInterval: 1.0,
+                                     target: self,
+                                     selector: #selector(updateTimer),
+                                     userInfo: nil,
+                                     repeats: true)
+    }
+
+    @objc private func updateTimer() {
+        if workPeriod {
+
+            if workTime < 1 {
+                restTime = Metric.restTime
+                timeLabel.text = Strings.restTimeLabelText
+                workPeriod = false
+            } else {
+                workTime -= 1
+                timeLabel.text = formatTime(workTime)
+            }
+
+        } else {
+
+            if restTime < 1 {
+                workTime = Metric.workTime
+                timeLabel.text = Strings.workTimeLabelText
+                workPeriod = true
+            } else {
+                restTime -= 1
+                timeLabel.text = formatTime(restTime)
+            }
+
+        }
+
+    }
+
+    private func formatTime(_ time: Int) -> String {
+        let minutes = Int(time) / 60 % 60
+        let seconds = Int(time) % 60
+
+        return String(format: "%02i:%02i", minutes, seconds)
     }
 
     //MARK: privateFunctions
@@ -69,6 +117,20 @@ class ViewController: UIViewController {
 
     private func setupView() {
         view.backgroundColor = .white
+    }
+
+    //MARK: isStarted
+
+    @objc private func startButtonTap(sender: UIButton!) {
+        if !isTamerStarted {
+            startTimer()
+            isTamerStarted = true
+            startButton.setImage(UIImage(systemName: "pause", withConfiguration: imageConfig), for: .normal)
+        } else {
+            timer.invalidate()
+            isTamerStarted = false
+            startButton.setImage(UIImage(systemName: "play", withConfiguration: imageConfig), for: .normal)
+        }
     }
 }
 
