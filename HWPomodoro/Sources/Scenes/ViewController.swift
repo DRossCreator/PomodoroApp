@@ -11,7 +11,10 @@ class ViewController: UIViewController {
 
     let imageConfig = UIImage.SymbolConfiguration(pointSize: Metric.imagePointSize, weight: .thin , scale: .large)
 
+    private var foreProgressLayer = CAShapeLayer()
+    private var backProgressLayer = CAShapeLayer()
     private var timer = Timer()
+
     private var workTime = Metric.workTime
     private var restTime = Metric.restTime
     private var workPeriod = true
@@ -50,6 +53,8 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        drawBackLayer()
         setupHieracly()
         setupLayout()
         setupView()
@@ -119,10 +124,36 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
     }
 
+    private func drawBackLayer() {
+        let center = view.center
+        let startAngle = -CGFloat.pi / 2
+        let endAngle = 2 * CGFloat.pi
+
+        backProgressLayer.path = UIBezierPath(arcCenter: center, radius: Metric.backProgressLayerRadius, startAngle: startAngle, endAngle: endAngle, clockwise: true).cgPath
+        backProgressLayer.fillColor = UIColor.clear.cgColor
+        backProgressLayer.strokeColor = UIColor.orange.cgColor
+        backProgressLayer.lineWidth = Metric.backLayerLineWith
+        view.layer.addSublayer(backProgressLayer)
+    }
+
+    private func drawForeLayer() {
+        let center = view.center
+        let startAngle = -CGFloat.pi / 2
+        let endAngle = 2 * CGFloat.pi
+
+        foreProgressLayer.path = UIBezierPath(arcCenter: center, radius: Metric.foreLayerRadius, startAngle: startAngle, endAngle: endAngle, clockwise: true).cgPath
+        foreProgressLayer.strokeColor = UIColor.orange.cgColor
+        foreProgressLayer.fillColor = UIColor.clear.cgColor
+        foreProgressLayer.lineCap = .round
+        foreProgressLayer.lineWidth = Metric.foreLayerLineWith
+        view.layer.addSublayer(foreProgressLayer)
+    }
+
     //MARK: isStarted
 
     @objc private func startButtonTap(sender: UIButton!) {
         if !isTamerStarted {
+            drawForeLayer()
             startTimer()
             isTamerStarted = true
             startButton.setImage(UIImage(systemName: "pause", withConfiguration: imageConfig), for: .normal)
