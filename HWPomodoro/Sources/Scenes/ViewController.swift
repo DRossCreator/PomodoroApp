@@ -13,12 +13,14 @@ class ViewController: UIViewController {
 
     private var foreProgressLayer = CAShapeLayer()
     private var backProgressLayer = CAShapeLayer()
+    private var animation = CABasicAnimation(keyPath: "strokeEnd")
     private var timer = Timer()
 
     private var workTime = Metric.workTime
     private var restTime = Metric.restTime
     private var workPeriod = true
     private var isTamerStarted = false
+    private var isAnimationStarted = false
 
     private lazy var timeLabel: UILabel = {
         let label = UILabel()
@@ -53,11 +55,11 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
         drawBackLayer()
         setupHieracly()
         setupLayout()
         setupView()
+
     }
 
     //MARK: isWorkTime
@@ -77,6 +79,7 @@ class ViewController: UIViewController {
                 restTime = Metric.restTime
                 timeLabel.text = Strings.restTimeLabelText
                 workPeriod = false
+                startAnimation()
             } else {
                 workTime -= 1
                 timeLabel.text = formatTime(workTime)
@@ -88,6 +91,7 @@ class ViewController: UIViewController {
                 workTime = Metric.workTime
                 timeLabel.text = Strings.workTimeLabelText
                 workPeriod = true
+                startAnimation()
             } else {
                 restTime -= 1
                 timeLabel.text = formatTime(restTime)
@@ -149,15 +153,66 @@ class ViewController: UIViewController {
         view.layer.addSublayer(foreProgressLayer)
     }
 
+    //MARK: Animation
+
+    private func startResumeAnimation() {
+        if !isAnimationStarted {
+            startAnimation()
+        } else {
+            resumeAnimation()
+        }
+    }
+
+    private func startAnimation() {
+        foreProgressLayer.strokeEnd = 0.0
+        animation.keyPath = "strokeEnd"
+        animation.fromValue = 0
+        animation.toValue = 1
+        animation.duration = durationUpdate()
+        animation.isRemovedOnCompletion = true
+        animation.isAdditive = true
+        animation.fillMode = CAMediaTimingFillMode.forwards
+        foreProgressLayer.add(animation, forKey: "strokeEnd")
+        isAnimationStarted = true
+    }
+
+    private func durationUpdate() -> Double {
+
+        if workPeriod {
+            animation.duration = Metric.workPeriodAnimationDuration
+        } else {
+            animation.duration = Metric.restPeriodAnimationDuration
+        }
+
+        return animation.duration
+    }
+
+    private func pauseAnimation() {
+        let pausedTime = foreProgressLayer.convertTime(CACurrentMediaTime(), from: nil)
+        foreProgressLayer.speed = 0.0
+        foreProgressLayer.timeOffset = pausedTime
+    }
+
+    private func resumeAnimation() {
+        let pausedTime = foreProgressLayer.timeOffset
+        foreProgressLayer.speed = 1.0
+        foreProgressLayer.timeOffset = 0.0
+        foreProgressLayer.beginTime = 0.0
+        let timeSincePaused = foreProgressLayer.convertTime(CACurrentMediaTime(), from: nil) - pausedTime
+        foreProgressLayer.beginTime = timeSincePaused
+    }
+
     //MARK: isStarted
 
     @objc private func startButtonTap(sender: UIButton!) {
         if !isTamerStarted {
             drawForeLayer()
             startTimer()
+            startResumeAnimation()
             isTamerStarted = true
             startButton.setImage(UIImage(systemName: "pause", withConfiguration: imageConfig), for: .normal)
         } else {
+            pauseAnimation()
             timer.invalidate()
             isTamerStarted = false
             startButton.setImage(UIImage(systemName: "play", withConfiguration: imageConfig), for: .normal)
