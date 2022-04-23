@@ -8,7 +8,6 @@
 import UIKit
 
 class ViewController: UIViewController {
-
     let imageConfig = UIImage.SymbolConfiguration(pointSize: Metric.imagePointSize, weight: .thin , scale: .large)
 
     private var foreProgressLayer = CAShapeLayer()
@@ -76,6 +75,7 @@ class ViewController: UIViewController {
         if workPeriod {
 
             if workTime < 1 {
+                SettingElementColors()
                 restTime = Metric.restTime
                 timeLabel.text = Strings.restTimeLabelText
                 workPeriod = false
@@ -88,6 +88,7 @@ class ViewController: UIViewController {
         } else {
 
             if restTime < 1 {
+                SettingElementColors()
                 workTime = Metric.workTime
                 timeLabel.text = Strings.workTimeLabelText
                 workPeriod = true
@@ -218,6 +219,21 @@ class ViewController: UIViewController {
             startButton.setImage(UIImage(systemName: "play", withConfiguration: imageConfig), for: .normal)
         }
     }
+
+    private func SettingElementColors() {
+        if workPeriod {
+            timeLabel.textColor = .systemMint
+            startButton.tintColor = .systemMint
+            foreProgressLayer.strokeColor = UIColor.systemMint.cgColor
+            backProgressLayer.strokeColor = UIColor.systemMint.cgColor
+        } else {
+            timeLabel.textColor = .orange
+            startButton.tintColor = .orange
+            foreProgressLayer.strokeColor = UIColor.orange.cgColor
+            backProgressLayer.strokeColor = UIColor.orange.cgColor
+        }
+    }
+
 }
 
 // MARK: - Constants
@@ -244,4 +260,3 @@ extension ViewController {
         static let restTimeLabelText: String = "00:05" //actually 05:00
     }
 }
-
